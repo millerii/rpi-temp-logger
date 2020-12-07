@@ -12,7 +12,7 @@ def scan_sensors():
 	global temp_sensors
 	temp_sensors = []
 	try:
-		temp_sensors = os.listdir("./sys/bus/w1/devices")
+		temp_sensors = os.listdir("./sys/bus/w1/devices/")
 	except Exception as e:
 		raise
 	else:
