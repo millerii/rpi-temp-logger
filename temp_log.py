@@ -8,11 +8,14 @@
 
 import os
 
+# Remove first comma from path if using with real sensors
+dir_w1_bus = "./sys/bus/w1/devices/"
+
 def scan_sensors():
 	global temp_sensors
 	temp_sensors = []
 	try:
-		temp_sensors = os.listdir("./sys/bus/w1/devices/")
+		temp_sensors = os.listdir(dir_w1_bus)
 	except Exception as e:
 		raise
 	else:
