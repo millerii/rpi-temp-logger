@@ -8,7 +8,7 @@ to complete my college open studies programmin cource.
 ----
 
 DS1820 temperature sensors are emulated to locate in same folder with .py -file
-*[Because I dont't have sensors nor connected right now in my RaspberryPi]*
+*[because I dont't have sensors nor connected right now in my RaspberryPi]*
 in `./sys/bus/w1/devices/yy-xxxxxxxxxxxx/` -folder, where 'yy' is sensors family code
 and xxx is unique adress name. DS1820 and DS18S20 yy = 10, DS18B20 yy = 28 and DS1822 yy = 22.
 *[I'm not however sure does code work other than DS1820 or 18S20*]
@@ -44,13 +44,3 @@ sudo raspi-config
 ```
 
 Pin 7 (GPIO4)
-
-## ToDo
-
-- [ ] Ohjelman versioiden branchaus
-- [ ] Päivitys python3
-- [ ] Toimintojen toteutus funktioilla
-- [ ] Anturien automaattinen etsintä (for..loop?) ja tunnisteen tallennus muuttujaan/taulukkoon
-- [ ] Löydettyjen anturien lukeminen for..loop
-- [ ] Tietojen tallennus exceliin, turtle module. Vai onko parempia muotovaihtoehtoja, jeren formaatti?
-- [ ] Lämpötilan tulostus pelkästään konsoliin argumentilla (--show)
