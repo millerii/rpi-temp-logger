@@ -12,7 +12,6 @@ import os
 dir_w1_bus = "./sys/bus/w1/devices/"
 
 def scan_sensors():
-	global temp_sensors
 	temp_sensors = []
 
 	try:
@@ -23,10 +22,12 @@ def scan_sensors():
 		# Pick only valid sensor-folders
 		temp_sensors = [i for i in temp_sensors if i.startswith("10-")]
 		if temp_sensors == []: raise FileNotFoundError
+	
+	return temp_sensors # List of temp-sensors id's
 	print("from: scan_sensors()", temp_sensors) # Only for development purpose, delete after release
 
-def read_sensors():
-	global temperatures
+def read_sensors(temp_sensors):
+	# Take list of temp-sensors id's as argument
 	temperatures = {}
 
 	for sensor in temp_sensors:
@@ -51,11 +52,12 @@ def read_sensors():
 			key = sensor
 			value = temp
 			temperatures[key] = value 
-
 		else:
 			temp = ""
+		
 		print("from: read_sensors()", check_crc, sensor, temp) # Only for development purpose, delete after release
+	
+	return temperatures # Dictionary of sensor-id combined with temperature
 
-scan_sensors()
-read_sensors()
-print("from: main prog",temperatures) # Only for development purpose, delete after release
+
+print("from: main prog", read_sensors(scan_sensors())) # Only for development purpose, delete after release
