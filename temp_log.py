@@ -4,9 +4,9 @@
 # DS18B20 has Code 28 
 # DS1822 the 22.
 # Don't know will this work with 'B' or x22 -sensors
-#./sys/bus/w1/devices/10-000800aac8dc/w1_slave
 
 import os
+
 
 # Remove first comma from path if using with real sensors
 dir_w1_bus = "./sys/bus/w1/devices/"
@@ -19,12 +19,14 @@ def scan_sensors():
 	except Exception as e:
 		raise
 	else:
-		# Pick only valid sensor-folders
+		# Pick only valid sensor-folders, folder starts with correct family code
 		temp_sensors = [i for i in temp_sensors if i.startswith("10-")]
-		if temp_sensors == []: raise FileNotFoundError
+		if temp_sensors == []:
+			raise FileNotFoundError
 	
 	return temp_sensors # List of temp-sensors id's
 	print("from: scan_sensors()", temp_sensors) # Only for development purpose, delete after release
+
 
 def read_sensors(temp_sensors):
 	# Take list of temp-sensors id's as argument
