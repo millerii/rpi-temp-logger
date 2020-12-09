@@ -6,6 +6,7 @@
 # Don't know will this work with 'B' or x22 -sensors
 
 import os
+import sys
 
 
 # Remove first comma from path if using with real sensors
@@ -17,7 +18,8 @@ def scan_sensors():
 	try:
 		temp_sensors = os.listdir(dir_w1_bus)
 	except Exception as e:
-		raise
+		print("*** Temperature sensor not found, check sensor connection or One-Wire settings. ***")
+		raise SystemExit(e)
 	else:
 		# Pick only valid sensor-folders, folder starts with correct family code
 		temp_sensors = [i for i in temp_sensors if i.startswith("10-")]
@@ -52,7 +54,7 @@ def read_sensors(temp_sensors):
 			temp = temp.split("\n")[1].rsplit('t=',1)[-1]
 			temp = float(temp) / 1000
 			key = sensor
-			value = temp
+			value = round(temp, 1)
 			temperatures[key] = value 
 		else:
 			temp = ""
@@ -61,5 +63,14 @@ def read_sensors(temp_sensors):
 	
 	return temperatures # Dictionary of sensor-id combined with temperature
 
+
+launch_argv = []
+launch_argv = sys.argv
+
+if "-show" in launch_argv:
+	temps = read_sensors(scan_sensors())
+	for addres, temp in temps.items():
+		print(addres + ":", str(temp) + "\N{DEGREE SIGN}C")
+	sys.exit()
 
 print("from: main prog", read_sensors(scan_sensors())) # Only for development purpose, delete after release
