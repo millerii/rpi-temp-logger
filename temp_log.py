@@ -63,14 +63,17 @@ def read_sensors(temp_sensors):
 	
 	return temperatures # Dictionary of sensor-id combined with temperature
 
+def show_temp():
+	temps = read_sensors(scan_sensors())
+	for addres, temp in temps.items():
+		print(addres + ":", str(temp) + "\N{DEGREE SIGN}C")
+
 
 launch_argv = []
 launch_argv = sys.argv
 
 if "-show" in launch_argv:
-	temps = read_sensors(scan_sensors())
-	for addres, temp in temps.items():
-		print(addres + ":", str(temp) + "\N{DEGREE SIGN}C")
+	show_temp()
 	sys.exit()
 
 print("from: main prog", read_sensors(scan_sensors())) # Only for development purpose, delete after release
