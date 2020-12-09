@@ -17,7 +17,8 @@ def scan_sensors():
 	try:
 		temp_sensors = os.listdir(dir_w1_bus)
 	except Exception as e:
-		raise
+		print("*** Temperature sensor not found, check sensor connection or One-Wire settings. ***")
+		raise SystemExit(e)
 	else:
 		# Pick only valid sensor-folders, folder starts with correct family code
 		temp_sensors = [i for i in temp_sensors if i.startswith("10-")]
