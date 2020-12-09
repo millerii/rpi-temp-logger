@@ -4,8 +4,9 @@
 - [x] Löydettyjen anturien lukeminen for..loop
 - [x] Globaalit muuttujat return`eiksi
 - [ ] Tietojen tallennus exceliin, turtle module. Vai onko parempia muotovaihtoehtoja, jeren formaatti?
-- [ ] Lämpötilan tulostus pelkästään konsoliin argumentilla (--show)
-- [ ] Anturien nimeäminen argumentilla (--names)
+- [x] Lämpötilan tulostus pelkästään konsoliin argumentilla (-show)
+- [ ] Anturien nimeäminen tiedoston kautta
+  - [ ] Anturien nimeäminen argumentilla (-names)
 - [ ] Ohjelman versioiden branchaus
 - [ ] Päivitys python3
 - [ ] Toimintojen toteutus funktioilla
