@@ -3,13 +3,15 @@
 - [x] Anturien automaattinen etsintä (for..loop?) ja tunnisteen tallennus muuttujaan/taulukkoon
 - [x] Löydettyjen anturien lukeminen for..loop
 - [x] Globaalit muuttujat return`eiksi
-- [ ] Tietojen tallennus exceliin, turtle module. Vai onko parempia muotovaihtoehtoja, jeren formaatti?
+- [ ] Tietojen tallennus exceliin, openpyxl module. 
+  - [ ] Historia-graafin piirto exceliin
+  - [ ] Historian tulostus konsolille (-history)
 - [x] Lämpötilan tulostus pelkästään konsoliin argumentilla (-show)
 - [ ] Anturien nimeäminen tiedoston kautta
   - [ ] Anturien nimeäminen argumentilla (-names)
-- [ ] Ohjelman versioiden branchaus
-- [ ] Päivitys python3
-- [ ] Toimintojen toteutus funktioilla
+- [x] Ohjelman versioiden branchaus
+- [x] Päivitys python3
+- [x] Toimintojen toteutus funktioilla
 
 ## Issues
 

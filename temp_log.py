@@ -7,6 +7,8 @@
 
 import os
 import sys
+import openpyxl
+import datetime
 
 
 # Remove first comma from path if using with real sensors
@@ -59,7 +61,7 @@ def read_sensors(temp_sensors):
 		else:
 			temp = ""
 		
-		print("from: read_sensors()", check_crc, sensor, temp) # Only for development purpose, delete after release
+		# print("from: read_sensors()", check_crc, sensor, temp) # Only for development purpose, delete after release
 	
 	return temperatures # Dictionary of sensor-id combined with temperature
 
@@ -67,6 +69,60 @@ def show_temp():
 	temps = read_sensors(scan_sensors())
 	for addres, temp in temps.items():
 		print(addres + ":", str(temp) + "\N{DEGREE SIGN}C")
+
+def excel_save():
+	temps = read_sensors(scan_sensors())
+
+	# Create initial excel file, if not exist
+	excel_file = "temp_history.xlsx"
+	if not os.path.isfile(excel_file):
+		wb = openpyxl.Workbook() # One time excel-file initializing
+		ws_data = wb.active
+		ws_data.title = "data"
+		ws_data['A1'] = "Day"
+		ws_data['B1'] = "Time"
+		ws_data['C1'] = "Temp1"
+		ws_data['D1'] = "Temp2"
+		ws_graph = wb.create_sheet("LastMonth")
+		
+		try:
+			wb.save(excel_file)
+		except Exception as e:
+			print(e)
+
+	# Load excel-workbook and save new data
+	try:
+		wb = openpyxl.load_workbook(excel_file)
+	except Exception as e:
+		print(e)
+	else:
+		ws_data = wb["data"]
+		now = datetime.datetime.now()
+		date = now.strftime("%d.%m.%Y")
+		time = now.strftime("%H:%M:%S")
+
+		###################
+		print("Ensimmäisen rivin solumäärä:", len(ws_data["1"]))
+		
+		
+		# Jos anturi-id ei ole sarakkeella vielä, lisätään se sinne
+		# Sarake ja anturin-id pitää jatkossa pystyä täsmäämään samaan sarakkeeseen
+		mylist = []
+		for col in ws_data['1']:
+			mylist.append(col.value)
+		print(mylist)
+		
+		
+
+		# Tallennetaan lämpötilat 'temps' kirjastosta rivin soluihin
+		
+		###################
+		try:
+			wb.save(excel_file)
+		except Exception as e:
+			print(e)
+
+	print("from: excel_save()", wb.sheetnames) # Only for development purpose, delete after release
 
 
 launch_argv = []
@@ -77,3 +133,5 @@ if "-show" in launch_argv:
 	sys.exit()
 
 print("from: main prog", read_sensors(scan_sensors())) # Only for development purpose, delete after release
+
+excel_save()
