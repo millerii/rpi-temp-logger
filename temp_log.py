@@ -1,97 +1,129 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-#########################################################################################
-# ToDo	Anturien automaattinen etsinta ja loydettyjen luku				#
-# 23.9.14	Lisatty lampotilan tallennus vuotta/kuukautta vastaavaan tiedostoon	#
-# 12.3.13	Lisatty virhekayttaytyminen jos anturitidostoa ei loydy.		#
-# 9.3.13	Lisatty CRC-tarkistus ja virhetilanteesa 3 uudelleenyritysta		#
-#########################################################################################
+# DS1820 and DS18S20 have the Family Code 10
+# DS18B20 has Code 28 
+# DS1822 the 22.
+# Don't know will this work with 'B' or x22 -sensors
 
+import os
+import sys
+import openpyxl
 import datetime
 
-now = datetime.datetime.now()
-check_crc = "N"
 
-# Ensimmainen anturi
-# Luetaan anturintiedostoa jos CRC tarkistus on OK. Muuten yritetaan yritetaan uudestaan
-reply = 0
-while reply <= 3:
+# Remove first comma from path if using with real sensors
+dir_w1_bus = "./sys/bus/w1/devices/"
+
+def scan_sensors():
+	temp_sensors = []
+
 	try:
-		# Open the file so that python can see what is in it. Replace the serial number as before.
-		tfile = open("/sys/bus/w1/devices/10-000800aac8dc/w1_slave")
-		# Read all of the text in the file.
-		text = tfile.read()
-		# Close the file now that the text has been read.
-		tfile.close()
-		# Kaivetaan anturin CRC tarkistus YES/NO-tulos
-		check_crc = text.split("\n")[0]
-		check_crc = check_crc.split(" ")[11]
-		check_crc = str(check_crc[0:1])
-		reply = reply + 1
-		#Jos tarkistus OK jatketaan eteenpain
-		if check_crc == "Y":
-			reply = 0
-			break
-	except IOError:
-		temperature1 = ""
-		break
+		temp_sensors = os.listdir(dir_w1_bus)
+	except Exception as e:
+		print("*** Temperature sensor not found, check sensor connection or One-Wire settings. ***")
+		raise SystemExit(e)
+	else:
+		# Pick only valid sensor-folders, folder starts with correct family code
+		temp_sensors = [i for i in temp_sensors if i.startswith("10-")]
+		if temp_sensors == []:
+			raise FileNotFoundError
 	
-# Jos CRC-tarkistus ei menny 3. yrittamalla lapi, lampotila jatetaan pois.
-if check_crc == "N":
-	temperature1 = ""
-else:
-	# Split the text with new lines (\n) and select the second line.
-	secondline = text.split("\n")[1]
-	# Split the line into words, referring to the spaces, and select the 10th word (counting from 0).
-	temperaturedata = secondline.split(" ")[9]
-	# The first two characters are "t=", so get rid of those and convert the temperature from a string to a number.
-	temperature1 = float(temperaturedata[2:])
-	# Put the decimal point in the right place and display it.
-	temperature1 = temperature1 / 1000
-	temperature1 = str(round(temperature1, 2))
+	return temp_sensors # List of temp-sensors id's
 
-check_crc = "N"
+def read_sensors(temp_sensors):	# Take list of temp-sensors id's as argument
+	temperatures = {}
 
-# Toinen anturi
-# Luetaan anturintiedostoa jos CRC tarkistus on OK. Muuten yritetaan yritetaan uudestaan
-reply = 0
-while reply <= 3:
+	for sensor in temp_sensors:
+		try_count = 0
+		check_crc = "NO"
+		temp = ""
+
+		try:
+			with open(dir_w1_bus + sensor + "/w1_slave", "r") as file:
+				while check_crc == "NO" and try_count <= 2:
+					temp = file.read()
+					# Parse crc-check, last word in line (YES/NO)
+					check_crc = temp.split("\n")[0].rsplit(" ",1)[-1]
+					try_count += 1
+		except Exception as e:
+			print(e)
+
+		if check_crc == "YES":
+			# Parse temperature, last word in line followed by 't='
+			temp = temp.split("\n")[1].rsplit('t=',1)[-1]
+			temp = float(temp) / 1000
+			# Save sensor-id and temp to dictionary
+			key = sensor
+			value = round(temp, 1)
+			temperatures[key] = value 
+		else:
+			temp = ""
+
+	return temperatures # Dictionary of sensor-id combined with temperature
+
+def show_temp():
+	temps = read_sensors(scan_sensors())
+	for addres, temp in temps.items():
+		print(addres + ":", str(temp) + "\N{DEGREE SIGN}C")
+
+def excel_save():
+	def add_temp_excel(ws_data, column_for_id, last_row, temp_for_id):
+		ws_data["A" + last_row] = date_now
+		ws_data["A" + last_row].number_format = 'dd.mm.yyyy h:mm'
+		ws_data[column_for_id + last_row] = temp_for_id
+
+	date_now = datetime.datetime.now()
+	temps = read_sensors(scan_sensors())
+
+	# Create initial excel file, if not exist
+	excel_file = "temp_history.xlsx"
+	if not os.path.isfile(excel_file):
+		wb = openpyxl.Workbook() # One time excel-file initializing
+		ws_data = wb.active
+		ws_data.title = "data"
+		ws_data['A1'] = "Date-Time"
+		
+		try:
+			wb.save(excel_file)
+		except Exception as e:
+			print(e)
+
+	# Load excel-workbook and save new data
 	try:
-		tfile = open("/sys/bus/w1/devices/10-000800e96437/w1_slave")
-		text = tfile.read()
-		tfile.close()
-		# Kaivetaan anturin CRC tarkistus YES/NO-tulos
-		check_crc = text.split("\n")[0]
-		check_crc = check_crc.split(" ")[11]
-		check_crc = str(check_crc[0:1])
-		reply = reply + 1
-		#Jos tarkistus OK jatketaan eteenpain
-		if check_crc == "Y":
-			reply = 0
-			break
-	except IOError:
-		temperature2 = ""
-		break
+		wb = openpyxl.load_workbook(excel_file)
+	except Exception as e:
+		print(e)
+	else:
+		ws_data = wb["data"]
+		
+		# Read excel headers for sensor-id -name compare
+		row_headers = []
+		for col in ws_data['1']:
+			row_headers.append(col.value)
 
-# Jos CRC-tarkistus ei menny 3. yrittamalla lapi, lampotila jatetaan pois.
-if check_crc == "N":
-	temperature2 = ""
-else:
-	secondline = text.split("\n")[1]
-	temperaturedata = secondline.split(" ")[9]
-	temperature2 = float(temperaturedata[2:])
-	temperature2 = temperature2 / 1000
-	temperature2 = str(round(temperature2, 2))
+		last_row = str(ws_data.max_row + 1) # Find last row from data-worksheet
 
-# Tallennetaan tulokset vuotta/kuukautta vastaavaan tiedostoon
-year_month = now.strftime("%Y_%m_")
-tlog = open("/home/pi/" + year_month + "temp_log.xls", "a")
-date = now.strftime("%d.%m.%Y")
-time = now.strftime("%H:%M:%S")
-tlog.write(date + "\t" + time + "\t" + temperature1.replace(".",",") + "\t" + temperature2.replace(".",",") + "\n")
-tlog.close()
+		for id in temps:
+			if id in row_headers:
+				column_for_id = str(chr(row_headers.index(id) + 97)) # Convert row 'number' [row_headers.index(id)] to letter [id:0 + ascii:97 = A]
+				# Add new temp for sensor-id row
+				add_temp_excel(ws_data, column_for_id, last_row, temps[id])
+			else:
+				# Add new sensor-id and save temp for that row
+				column_for_id = chr(ws_data.max_column + 97) # Get last row [id:0 + ascii:97 = A]
+				ws_data[column_for_id + str(1)] = id
+				add_temp_excel(ws_data, column_for_id, last_row, temps[id])
+		
+		try:
+			wb.save(excel_file)
+		except Exception as e:
+			print(e)
 
-#print "Temp 1:", temperature1, "C"
-#print "Temp 2:", temperature2, "C"
-#print date, time
+
+launch_argv = []
+launch_argv = sys.argv
+
+if "-show" in launch_argv:
+	show_temp()
+	sys.exit()
+
