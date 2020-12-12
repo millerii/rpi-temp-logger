@@ -71,6 +71,11 @@ def show_temp():
 		print(addres + ":", str(temp) + "\N{DEGREE SIGN}C")
 
 def excel_save():
+	def add_temp_excel(ws_data, column_for_id, last_row, temp_for_id):
+		ws_data[column_for_id + last_row] = temp_for_id
+		print("from: add_temp_excel(); ws_data+=", column_for_id + last_row, temp_for_id) # Only for development purpose, delete after release
+
+
 	temps = read_sensors(scan_sensors())
 
 	# Create initial excel file, if not exist
@@ -104,16 +109,36 @@ def excel_save():
 		###################
 		print("Ensimmäisen rivin solumäärä:", len(ws_data["1"]))
 		
-		
-		# Jos anturi-id ei ole sarakkeella vielä, lisätään se sinne
-		# Sarake ja anturin-id pitää jatkossa pystyä täsmäämään samaan sarakkeeseen
-		mylist = []
+		# Read excel headers for sensor-id compare
+		row_headers = []
 		for col in ws_data['1']:
-			mylist.append(col.value)
-		print(mylist)
-		
-		
+			row_headers.append(col.value)
+		print("from: excel_save(); otsikon rivinimet=", row_headers) # Only for development purpose, delete after release
 
+		# Miltä riviltä anturi-id löytyy, jos ei ole sarakkeella vielä, lisätään se sinne
+		last_row = str(ws_data.max_row + 1) # Find last row from data-worksheet
+		for id in temps: # Mennään anturi-id:t lävitse
+			if id in row_headers: # Tarkastetaan löytyykö id excel otsikko-riviltä
+				#print("from: 'id in row_header'; id=", id, "löytyi paikalta", row_headers.index(id)) # Only for development purpose, delete after release
+				column_for_id = chr(row_headers.index(id) + 97) # Muuta sarakepaikka [row_headers.index(id)] kirjaimeksi [(id:0 + ascii:97 = A)]
+				#print("from: 'id in row_header; id-cell coordinates=", str(column_for_id) + str(ws_data.max_row)) # Only for development purpose, delete after release
+				#print("from: 'id in row_header; id temp=", temps[id]) # Only for development purpose, delete after release
+				ws_data[str(column_for_id) + last_row] = temps[id]
+			else:
+				print("from: 'id in temps' Ei löytynyt excelistä id:tä=", id) # Only for development purpose, delete after release
+				print("from: id in row_header/else; seuraava vapaa header-rivi=", ws_data.max_column + 1)
+				column_for_id = chr(ws_data.max_column + 97) # [(id:0 + ascii:97 = A)]
+				print(str(column_for_id) + str(1))
+				ws_data[str(column_for_id) + str(1)] = id
+				# Add temp(funktio)
+				add_temp_excel(ws_data, str(column_for_id), last_row, temps[id])
+
+				# Add id to column 1
+				# Add temp (funktioksi koska kahdessa paikkaa?)
+				# temp = temps[id]
+
+		
+		# Sarake ja anturin-id pitää jatkossa pystyä täsmäämään samaan sarakkeeseen
 		# Tallennetaan lämpötilat 'temps' kirjastosta rivin soluihin
 		
 		###################
@@ -122,7 +147,7 @@ def excel_save():
 		except Exception as e:
 			print(e)
 
-	print("from: excel_save()", wb.sheetnames) # Only for development purpose, delete after release
+	print("from: excel_save(); sheet names:=", wb.sheetnames) # Only for development purpose, delete after release
 
 
 launch_argv = []
