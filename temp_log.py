@@ -72,10 +72,14 @@ def show_temp():
 
 def excel_save():
 	def add_temp_excel(ws_data, column_for_id, last_row, temp_for_id):
+		ws_data["A" + last_row] = date_now
+		ws_data["A" + last_row].number_format = 'dd.mm.yyyy h:mm'
+
 		ws_data[column_for_id + last_row] = temp_for_id
 		print("from: add_temp_excel(); ws_data+=", column_for_id + last_row, temp_for_id) # Only for development purpose, delete after release
 
 
+	date_now = datetime.datetime.now()
 	temps = read_sensors(scan_sensors())
 
 	# Create initial excel file, if not exist
@@ -102,12 +106,7 @@ def excel_save():
 		print(e)
 	else:
 		ws_data = wb["data"]
-		now = datetime.datetime.now()
-		date = now.strftime("%d.%m.%Y")
-		time = now.strftime("%H:%M:%S")
-
-		###################
-		print("Ensimmäisen rivin solumäärä:", len(ws_data["1"]))
+		print("Ensimmäisen rivin solumäärä:", len(ws_data["1"])) # Only for development purpose, delete after release
 		
 		# Read excel headers for sensor-id compare
 		row_headers = []
@@ -123,25 +122,15 @@ def excel_save():
 				column_for_id = chr(row_headers.index(id) + 97) # Muuta sarakepaikka [row_headers.index(id)] kirjaimeksi [(id:0 + ascii:97 = A)]
 				#print("from: 'id in row_header; id-cell coordinates=", str(column_for_id) + str(ws_data.max_row)) # Only for development purpose, delete after release
 				#print("from: 'id in row_header; id temp=", temps[id]) # Only for development purpose, delete after release
-				ws_data[str(column_for_id) + last_row] = temps[id]
+				add_temp_excel(ws_data, str(column_for_id), last_row, temps[id])
 			else:
 				print("from: 'id in temps' Ei löytynyt excelistä id:tä=", id) # Only for development purpose, delete after release
-				print("from: id in row_header/else; seuraava vapaa header-rivi=", ws_data.max_column + 1)
+				print("from: 'id in row_header/else'; seuraava vapaa header-rivi=", ws_data.max_column + 1)
 				column_for_id = chr(ws_data.max_column + 97) # [(id:0 + ascii:97 = A)]
-				print(str(column_for_id) + str(1))
+				print("from: 'id in row_header/else'; coordinates=", str(column_for_id) + str(1))# Only for development purpose, delete after release
 				ws_data[str(column_for_id) + str(1)] = id
-				# Add temp(funktio)
 				add_temp_excel(ws_data, str(column_for_id), last_row, temps[id])
-
-				# Add id to column 1
-				# Add temp (funktioksi koska kahdessa paikkaa?)
-				# temp = temps[id]
-
 		
-		# Sarake ja anturin-id pitää jatkossa pystyä täsmäämään samaan sarakkeeseen
-		# Tallennetaan lämpötilat 'temps' kirjastosta rivin soluihin
-		
-		###################
 		try:
 			wb.save(excel_file)
 		except Exception as e:
