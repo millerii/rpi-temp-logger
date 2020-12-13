@@ -21,7 +21,7 @@ Each sensor folder have `w1_slave` -file that contain roughly following informat
 
 In real scenario, folder structure are located in system root `/sys/bus/w1/devices/...`
 
-Program is designed to run as schedule task with eg. cron.
+Program is designed to run as schedule task with eg. cron. or from command line with argument '-show' to just show list of sensors temperature.
 
 ## Enable 1-wire in RaspberryPi
 
@@ -43,4 +43,10 @@ sudo raspi-config
 >>> Enable
 ```
 
-Pin 7 (GPIO4)
+## Wiring
+
+Connect sensors data-pin to Raspberry GPIO-header pin-7 (GPIO4)
+
+## Flowchart of .py
+
+![flowchart](flowchart_temp_log.png)
