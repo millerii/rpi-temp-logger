@@ -127,3 +127,4 @@ if "-show" in launch_argv:
 	show_temp()
 	sys.exit()
 
+excel_save()
